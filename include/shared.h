@@ -1,6 +1,9 @@
 #ifndef SHARED_H
 #define SHARED_H
 
+#define INVALID_INDEX -1
+#define BUFFER_SIZE 512
+
 typedef struct
 {
    char hostname[50];
@@ -10,5 +13,6 @@ typedef struct
 } userData;
 
 extern userData uData;
+extern char chunkBuffer[BUFFER_SIZE];
 
 #endif

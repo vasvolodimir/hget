@@ -1,19 +1,8 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include "../include/network.h"
 
-#include <sys/socket.h> // for socket() and etc
-#include <netinet/in.h> // for htons, htonl...
-#include <unistd.h> // for close()
-#include <netdb.h>
+char chunkBuffer[BUFFER_SIZE] = { 0 };
 
-#define PORT 80 // 80
-#define HOSTNAME /*INADDR_LOOPBACK*/ "gray-world.net"
-
-char message[] = "GET /etc/passwd/googletut1.txt HTTP/1.1\r\nHost:gray-world.net\r\nConnection: close\r\n\r\n"; //sprintf
-char buf[512];
-
-void diagnostic(int retval, const char *message)
+void networkStatus(int retval, const char *message)
 {
     if(retval < 0)
     {
@@ -35,23 +24,23 @@ struct hostent *resolve(const char *hostname)
     return hn;
 }
 
-struct sockaddr_in initSockAddr(short int family, unsigned short port,
-                        unsigned long hostname, unsigned char *zero)
+struct sockaddr_in initServerData(short int family, unsigned short port,
+                                  unsigned long hostname, unsigned char *zero)
 {
-    struct sockaddr_in server_addr = { family, htons(port) };
+    struct sockaddr_in serverData = { family, htons(port) };
     struct hostent *host = resolve(hostname);
 
-    memcpy(&server_addr.sin_addr, host->h_addr_list[0], host->h_length);
+    memcpy(&serverData.sin_addr, host->h_addr_list[0], host->h_length);
 
-    return server_addr;
+    return serverData;
 }
 
-void connectionEstabilishment(int socket, struct sockaddr *addr, unsigned int len)
+void createConnection(int socket, struct sockaddr *addr, unsigned int len)
 {
-    diagnostic(connect(socket, addr, len), "Connection refuesed!");
+    networkStatus(connect(socket, addr, len), "Connection refused!");
 }
 
-void readall(int socket, char *buff, size_t len, int flags)
+void readFromHost(int socket, char *buff, size_t len, int flags)
 {
     int size = 0;
 
@@ -64,19 +53,32 @@ void readall(int socket, char *buff, size_t len, int flags)
     }
 }
 
-//int main()
-//{
+int createSocket()
+{
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    networkStatus(sock, "Socket doesn't open!");
 
-//    int _socket = socket(AF_INET, SOCK_STREAM, 0);
+    return sock;
+}
 
-//    diagnostic(_socket, "Socket doesn't open!"); // create socket
-//    struct sockaddr_in addr = initSockAddr(AF_INET, PORT, HOSTNAME, NULL); // init sockaddr_in
-//    connectionEstabilishment(_socket, (struct sockaddr*) &addr, sizeof(addr)); // connect
+int connectToHost(userData data)
+{
+    int sock = createSocket();
+    struct sockaddr_in serverData = initServerData(AF_INET, PORT, data.hostname, NULL);
 
-//    send(_socket, message, sizeof(message), 0);
-//    readall(_socket, buf, sizeof(buf), 0);
+    createConnection(sock, (struct sockaddr*) &serverData, sizeof(serverData));
 
-//    close(_socket);
+    return sock;
+}
 
-//    return 0;
-//}
+void sendToHost(int socket)
+{
+    char *message = createMessage();
+    send(socket, message, strlen(message), 0);
+}
+
+char *createMessage()
+{
+    sprintf(chunkBuffer, "GET %s HTTP/1.1\r\nHost:%s\r\nConnection: close\r\n\r\n", uData.source, uData.hostname);
+    return chunkBuffer;
+}

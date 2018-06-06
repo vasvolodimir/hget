@@ -1,10 +1,13 @@
 #include "../include/io.h"
+#include "../include/network.h"
 
 int main(int argc, char *argv[])
 {
-    parse(argc, argv);
+    int host = connectToHost(parse(argc, argv)); // socket descriptor
 
-//    printf("%s\n", argv[1]);
+    sendToHost(host);
+    readFromHost(host, chunkBuffer, sizeof(chunkBuffer), 0);
+    close(host);
 
     return 0;
 }

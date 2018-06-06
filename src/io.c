@@ -13,7 +13,7 @@ void inputVerification(char *string)
     }
 }
 
-void parse(int argc, char **argv)
+userData parse(int argc, char **argv)
 {
      int result = 0;
      const char *optstring = ":h:s:d:";
@@ -38,7 +38,5 @@ void parse(int argc, char **argv)
          }
      }
 
-     printf("%s\n", uData.hostname);
-     printf("%s\n", uData.source);
-     printf("%s\n", uData.destination);
+     return uData;
 }
