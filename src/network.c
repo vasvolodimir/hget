@@ -25,9 +25,9 @@ struct hostent *resolve(const char *hostname)
 }
 
 struct sockaddr_in initServerData(short int family, unsigned short port,
-                                  unsigned long hostname, unsigned char *zero)
+                                  char *hostname, unsigned char *zero)
 {
-    struct sockaddr_in serverData = { family, htons(port) };
+    struct sockaddr_in serverData = { family, htons(port), { 0 } };
     struct hostent *host = resolve(hostname);
 
     memcpy(&serverData.sin_addr, host->h_addr_list[0], host->h_length);
@@ -47,9 +47,35 @@ void readFromHost(int socket, char *buff, size_t len, int flags)
     while(1)
     {
         memset(buff, 0, len);
-        size = recv(socket, buff, len, flags);
-        if(size <= 0) break;
-        else printf("%s", buff);
+        size = recv(socket, buff, len - 1, flags);
+        if(size <= 0)
+	    break;
+        else
+        {
+            static int exist = 0;
+
+            if (!exist)
+                exist = fileExist(buff); // Does file exist on the server?
+
+            if (exist)
+            {
+                static char *offset = NULL;
+
+                if(!offset)
+                {
+                    offset = findEndOfHeader(buff);
+                    writeToFile(offset);
+                    continue;
+                }
+
+                writeToFile(buff);
+            }
+            else
+            {
+                printf("File didn't find on the server!\n");
+                exit(EXIT_FAILURE);
+            }
+        }
     }
 }
 
@@ -81,4 +107,10 @@ char *createMessage()
 {
     sprintf(chunkBuffer, "GET %s HTTP/1.1\r\nHost:%s\r\nConnection: close\r\n\r\n", uData.source, uData.hostname);
     return chunkBuffer;
+}
+
+int fileExist(const char *buffer)
+{
+    char *string = strstr(buffer, "HTTP/1.1 200 OK");
+    return string ? 1 : 0;
 }

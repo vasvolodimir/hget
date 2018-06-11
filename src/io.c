@@ -40,3 +40,48 @@ userData parse(int argc, char **argv)
 
      return uData;
 }
+
+void writeToFile(const char *chunk)
+{
+    FILE *file = fopen(uData.destination, "a");
+
+    fprintf(file, chunk);
+    fclose(file);
+}
+
+char *getSubString(const char *data, const char *delim)
+{
+    size_t size = strlen(data);
+    char *copy = (char*) malloc(size + 1); // copy of data
+
+    memset(copy, '\0', size + 1);
+    strncpy(copy, data, size);
+
+    char *string = strtok(copy, delim);
+    char *sub;
+
+    while(string)
+    {
+        sub = string;
+        string = strtok (NULL, delim);
+    }
+
+    size = strlen(sub);
+    char *result = (char*) malloc(size + 1); // workaround to avoid memory leak
+    *(result + size + 1) = '\0';
+    strncpy(result, sub, size);
+
+    free(copy);
+
+    return result;
+}
+
+char *findEndOfHeader(const char *buffer)
+{
+    const char *end = "\r\n\r\n";
+    size_t space_size = sizeof(end);
+
+    char *result = strstr(buffer, end);
+
+    return result ? strstr(buffer, end) + space_size : NULL;
+}

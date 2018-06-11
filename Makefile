@@ -29,5 +29,3 @@ distclean:
 $(TARGET): $(OBJS) 
 	$(CC) -o $(TARGET) $(OBJS);
 	mv $(TARGET) bin/
-
-

@@ -4,6 +4,8 @@
 #define INVALID_INDEX -1
 #define BUFFER_SIZE 512
 
+//XXX: move to .c file
+//XXX: no static allocation
 typedef struct
 {
    char hostname[50];
